@@ -1,0 +1,548 @@
+﻿<%@ Master Language="C#" AutoEventWireup="true" CodeFile="ABMaster.master.cs" Inherits="AnalyticBrains.MasterPage.ABMaster" %>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="Head1" runat="server">
+    <title>Analytic Brains</title>
+    <link rel="icon" type="image/x-icon" href="~/Includes/Images/Logo_AB.png" />
+    <asp:ContentPlaceHolder ID="head" runat="server">
+    </asp:ContentPlaceHolder>
+    <link href="../Includes/CSS/style.css" rel="stylesheet" type="text/css" />
+    <link href="../Includes/CSS/ABStyle.css" rel="stylesheet" type="text/css" />
+    <link href="../Includes/CSS/Calendar.css" rel="stylesheet" type="text/css" />
+    <link href="../Includes/bootstrap-3.3.6/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <%-- <script src="../Includes/bootstrap-3.3.6/js/jquery-1.9.1.js" type="text/javascript"></script>
+    <script src="../Includes/bootstrap-3.3.6/js/bootstrap.min.js" type="text/javascript"></script>--%>
+    <script type="text/javascript">
+        //Added by Sophia for Menus to remove the another selection
+        $('body').mouseup(function () {
+            $('.dropdown.open').removeClass('open');
+        });
+        function OnLoadDatefun() {
+            var Today = new Date();
+            var dayNum = Today.getDay();
+            var year = Today.getFullYear();
+            var strdate = Today.toString();
+            var day = strdate.substring(0, 3);
+            var month = strdate.substring(4, 10);
+            Today = day + ', ' + month + ', ' + year;
+            document.getElementById('lblDate').innerHTML = Today;
+        }
+        function Logout() {
+            alert('You have been logged out successfully!');
+        }
+        function redirect(number) {
+            var Empid = getParameterByName('EmpId');
+            var session = getParameterByName('sessionid');
+            var username = getParameterByName('Username');
+            if (number == '1') { window.location.href = "./LeaveHistory.aspx?EmpId=" + Empid + "&sessionid=" + session + "&Username=" + username; }
+            else if (number == '2') { window.location.href = "./Permission.aspx?EmpId=" + Empid + "&sessionid=" + session + "&Username=" + username; }
+
+        }
+        function redirect1(number) {
+            var Empid = getParameterByName('EmpId');
+            var session = getParameterByName('sessionid');
+            var username = getParameterByName('Username');
+            if (number == '1') { window.location.href = "./ViewEditTimesheet.aspx?EmpId=" + Empid + "&sessionid=" + session + "&Username=" + username; }
+            else if (number == '2') { window.location.href = "./ApprovalTimesheet.aspx?EmpId=" + Empid + "&sessionid=" + session + "&Username=" + username; }
+            else if (number == '3') { window.location.href = "./TaskMaster.aspx?EmpId=" + Empid + "&sessionid=" + session + "&Username=" + username; } //Added by sof
+            else if (number == '4') { window.location.href = "./TaskManage.aspx?EmpId=" + Empid + "&sessionid=" + session + "&Username=" + username; } //Added by sof
+
+            else if (number == '5') { window.location.href = "./EditProfile.aspx?EmpId=" + Empid + "&sessionid=" + session + "&Username=" + username; } //Added by sof
+            else if (number == '6') { window.location.href = "./ChangeUserPassword.aspx?EmpId=" + Empid + "&sessionid=" + session + "&Username=" + username; } //Added by sof
+            //"TaskMaster.aspx?EmpId=" + EmpId + "&sessionid=" + sessionid + "&Username=" + Username
+            else if (number == '7') { window.location.href = "./PoliciesandProcedures.aspx?EmpId=" + Empid + "&sessionid=" + session + "&Username=" + username; }
+            else if (number == '8') { window.location.href = "./PaySlips.aspx?EmpId=" + Empid + "&sessionid=" + session + "&Username=" + username; } //Added by sof
+            else if (number == '9') { window.location.href = "./HolidayList.aspx?EmpId=" + Empid + "&sessionid=" + session + "&Username=" + username; }
+            else if (number == '10') { window.location.href = "./Reminder.aspx?EmpId=" + Empid + "&sessionid=" + session + "&Username=" + username; }
+            else if (number == '11') { window.location.href = "./ExpensesRecords.aspx?EmpId=" + Empid + "&sessionid=" + session + "&Username=" + username; }
+            else if (number == '12') { window.location.href = "./Feedback.aspx?EmpId=" + Empid + "&sessionid=" + session + "&Username=" + username; }
+            else if (number == '13') { window.location.href = "./TaskDashboard.aspx?EmpId=" + Empid + "&sessionid=" + session + "&Username=" + username; }
+        }
+
+        function getParameterByName(name, url) {
+            //debugger;
+            if (!url) url = window.location.href;
+            name = name.replace(/[\[\]]/g, "\\$&");
+            var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+            results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, " "));
+        }
+
+        function testddl() {
+
+            //           var Empid = getParameterByName('EmpId'); 
+            //var session= getParameterByName('sessionid');
+            //var username = getParameterByName('Username'); 
+
+            var url = window.location.href; // = "./LeaveHistory.aspx?EmpId="+Empid+" &sessionid="+session+"&Username="+username ;
+            // alert(url);
+            if ((~url.indexOf("LeaveHistory.aspx")) || (~url.indexOf("Permission.aspx"))) {
+                if ($('#ctl00_ddllmslink').length > 0)
+                    $('#ctl00_ddllmslink').toggleClass('open');
+                else
+                    $('#ddllmslink').toggleClass('open');
+
+            }
+            else {
+                $('#ddllmslink').toggleClass('open');
+            }
+        }
+        function testdd2() {
+
+            //           var Empid = getParameterByName('EmpId'); 
+            //var session= getParameterByName('sessionid');
+            //var username = getParameterByName('Username'); 
+
+            var url = window.location.href; // = "./LeaveHistory.aspx?EmpId="+Empid+" &sessionid="+session+"&Username="+username ;
+            // alert(url);
+            if ((~url.indexOf("ViewEditTimesheet.aspx")) || (~url.indexOf("ApprovalTimesheet.aspx"))) {
+                if ($('#ctl00_ddlViewLink').length > 0)
+                    $('#ctl00_ddlViewLink').toggleClass('open');
+                else
+                    $('#btnViewTimesheet').toggleClass('open');
+
+            }
+            else {
+                $('#btnViewTimesheet').toggleClass('open');
+            }
+        }
+        //Added by sof
+
+        function testdd3() {
+
+            //           var Empid = getParameterByName('EmpId'); 
+            //var session= getParameterByName('sessionid');
+            //var username = getParameterByName('Username'); 
+
+            var url = window.location.href; // = "./LeaveHistory.aspx?EmpId="+Empid+" &sessionid="+session+"&Username="+username ;
+            // alert(url);
+            if ((~url.indexOf("TaskManage.aspx")) || (~url.indexOf("TaskMaster.aspx"))) {
+                if ($('#ctl00_ddlViewLink').length > 0)
+                    $('#ctl00_ddlViewLink').toggleClass('open');
+                else
+                    $('#btntask').toggleClass('open');
+
+            }
+            else {
+                $('#btntask').toggleClass('open');
+            }
+        }
+        //Added by sof
+        function testdd4() {
+
+            //           var Empid = getParameterByName('EmpId'); 
+            //var session= getParameterByName('sessionid');
+            //var username = getParameterByName('Username'); 
+
+            var url = window.location.href; // = "./LeaveHistory.aspx?EmpId="+Empid+" &sessionid="+session+"&Username="+username ;
+            // alert(url);
+            if ((~url.indexOf("EditProfile.aspx")) || (~url.indexOf("ChangeUserPassword.aspx"))) {
+                if ($('#ctl00_ddlViewLink').length > 0)
+                    $('#ctl00_ddlViewLink').toggleClass('open');
+                else
+                    $('#ddlprofile').toggleClass('open');
+
+            }
+            else {
+                $('#ddlprofile').toggleClass('open');
+            }
+        }
+        //Added by sof
+        function testdd5() {
+            //debugger;
+            //           var Empid = getParameterByName('EmpId'); 
+            //var session= getParameterByName('sessionid');
+            //var username = getParameterByName('Username'); 
+
+            var url = window.location.href; // = "./LeaveHistory.aspx?EmpId="+Empid+" &sessionid="+session+"&Username="+username ;
+            // alert(url);
+            if ((~url.indexOf("PoliciesandProcedures.aspx")) || (~url.indexOf("PaySlips.aspx"))) {
+                if ($('#ctl00_ddlViewLink').length > 0)
+                    $('#ctl00_ddlViewLink').toggleClass('open');
+                else
+                    $('#ddlemployeeportal').toggleClass('open');
+
+            }
+            else {
+                $('#ddlemployeeportal').toggleClass('open');
+            }
+            return false;
+        }
+        $(document).ready(function () {
+            var url = window.location.href;
+            $('.current').removeClass('current');
+            if ((~url.indexOf("Home.aspx")))
+                $('#ctl00_btnHome').addClass('current')
+            else if ((~url.indexOf("EnterTimeSheet.aspx")))
+                $('#ctl00_btnTimesheet').addClass('current')
+            else if ((~url.indexOf("ViewEditTimesheet.aspx")) || (~url.indexOf("ApprovalTimesheet.aspx")))
+                $('#btnViewTimesheet .dropdown-toggle').addClass('current')
+            else if ((~url.indexOf("TaskMaster.aspx")) || (~url.indexOf("TaskManage.aspx")))
+                $('#btntask .dropdown-toggle').addClass('current')
+            else if ((~url.indexOf("LeaveHistory.aspx")) || (~url.indexOf("Permission.aspx")))
+                $('#ddllmslink .dropdown-toggle').addClass('current')
+            else if ((~url.indexOf("Reminder.aspx")))
+                $('#ctl00_ddlmanagement .dropdown-toggle').addClass('current')
+            else if ((~url.indexOf("PoliciesandProcedures.aspx")) || (~url.indexOf("PaySlips.aspx")) || (~url.indexOf("HolidayList.aspx")))
+                $('#ddlemployeeportal .dropdown-toggle').addClass('current')
+            else if ((~url.indexOf("EditProfile.aspx")) || (~url.indexOf("ChangeUserPassword.aspx")))
+                $('#ddlprofile .dropdown-toggle').addClass('current')
+            else if ((~url.indexOf("Login.aspx")))
+                $('#ctl00_btnLogout .dropdown-toggle').addClass('current')
+
+            
+        })
+        function testdd6() {
+            var url = window.location.href;
+            if ((~url.indexOf("Reminder.aspx"))) {
+                if ($('#ctl00_ddlViewLink').length > 0)
+                    $('#ctl00_ddlViewLink').toggleClass('open');
+                else
+                    $('#ctl00_ddlmanagement').toggleClass('open');
+
+            }
+            else {
+                $('#ctl00_ddlmanagement').toggleClass('open');
+            }
+
+            return false;
+        }
+        function testdd7() {
+            var url = window.location.href;
+            if ((~url.indexOf("ExpensesRecords.aspx"))) {
+                if ($('#ctl00_ddlViewLink').length > 0)
+                    $('#ctl00_ddlViewLink').toggleClass('open');
+                else
+                    $('#ctl00_ddlexpenses').toggleClass('open');
+
+            }
+            else {
+                $('#ctl00_ddlexpenses').toggleClass('open');
+            }
+
+            return false;
+        }
+      
+
+      
+    </script>
+    <%--<style>
+.button {
+    background-color: #476e9e; /* Green */
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 8px;
+    margin: 4px 2px;
+    cursor: pointer;
+}
+
+.button1 {border-radius: 2px;}
+.button2 {border-radius: 4px;}
+.button3 {border-radius: 8px;}
+.button4 {border-radius: 12px;}
+.button5 {border-radius: 50%;}
+
+
+
+
+.myButton {
+	-moz-box-shadow: 0px 0px 0px 2px #9fb4f2;
+	-webkit-box-shadow: 0px 0px 0px 2px #9fb4f2;
+	box-shadow: 0px 0px 0px 2px #9fb4f2;
+	background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #7892c2), color-stop(1, #476e9e));
+	background:-moz-linear-gradient(top, #7892c2 5%, #476e9e 100%);
+	background:-webkit-linear-gradient(top, #7892c2 5%, #476e9e 100%);
+	background:-o-linear-gradient(top, #7892c2 5%, #476e9e 100%);
+	background:-ms-linear-gradient(top, #7892c2 5%, #476e9e 100%);
+	background:linear-gradient(to bottom, #7892c2 5%, #476e9e 100%);
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#7892c2', endColorstr='#476e9e',GradientType=0);
+	background-color:#7892c2;
+	-moz-border-radius:10px;
+	-webkit-border-radius:10px;
+	border-radius:10px;
+	border:1px solid #4e6096;
+	display:inline-block;
+	cursor:pointer;
+	color:#ffffff;
+	font-family:Arial;
+	font-size:10px;
+	padding:10px 12px;
+	text-decoration:none;
+	text-shadow:0px 1px 0px #283966;
+}
+.myButton:hover {
+	background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #476e9e), color-stop(1, #7892c2));
+	background:-moz-linear-gradient(top, #476e9e 5%, #7892c2 100%);
+	background:-webkit-linear-gradient(top, #476e9e 5%, #7892c2 100%);
+	background:-o-linear-gradient(top, #476e9e 5%, #7892c2 100%);
+	background:-ms-linear-gradient(top, #476e9e 5%, #7892c2 100%);
+	background:linear-gradient(to bottom, #476e9e 5%, #7892c2 100%);
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#476e9e', endColorstr='#7892c2',GradientType=0);
+	background-color:#476e9e;
+}
+.myButton:active {
+	position:relative;
+	top:1px;
+}
+
+</style>--%>
+    <style type="text/css">
+        .navbar-nav li a:hover, .navbar-nav li.active a
+        {
+            color: #428bca !important;
+            background-color: #fff !important;
+        }
+        
+        .navbar-toggle
+        {
+            background-color: White;
+        }
+        .dropdown-menu
+        {
+            color: #fff !important;
+            background-color: #2970AD !important;
+        }
+        
+        
+        .navbar
+        {
+            margin-bottom: 0;
+            background-color: #2970AD;
+            border: 0;
+            font-size: 12px !important;
+            line-height: 1.42857143 !important;
+            letter-spacing: 2px;
+            border-radius: 0;
+            font-family: Montserrat, sans-serif;
+        }
+        .navbar-default .navbar-nav > .open > a, .navbar-default .navbar-nav > .open > a:focus, .navbar-default .navbar-nav > .open > a:hover
+        {
+            background-color: Black;
+        }
+        .navbar-header
+        {
+            font-size: 14px !important;
+        }
+        .nav-container
+        {
+            padding-right: 0;
+        }
+        *
+        {
+            letter-spacing: 0.8px;
+        }
+        .navbar-right a
+        {
+            padding: 10px !important;
+        }
+     
+        .navbar-nav span.glyphicon
+        {
+            margin-right: 5px;
+        }
+        .navbar-nav span.caret
+        {
+            margin-left: 5px;
+        }
+        .navbar-default .navbar-nav > li > a
+        {
+            border-radius: 30px;
+            margin-left: 10px;
+        }
+        .navbar-nav .current
+        {
+            color: #428bca !important;
+            background-color: #fff !important;
+        }
+        .navbar-nav
+        {
+            padding-top:10px
+            }
+            .navbar-right a {
+    padding: 7px 10px !important;
+}
+.navbar-header img
+{
+
+    border-width: 0px;
+    height: 45px;
+    padding-top: 5px;
+    margin-top: 2px;
+}
+    </style>
+</head>
+<body onload="OnLoadDatefun()">
+    <form id="form1" runat="server">
+    <asp:ScriptManager ID="ScriptManager" runat="server">
+    </asp:ScriptManager>
+    <nav class="navbar navbar-default" role="navigation">
+        <div class="col-lg-14 col-md-16 nav-container">
+            <%--ADDED BY SOF for nav container to added styles--%>
+            <div class="navbar-header">
+                <asp:Image ID="Image1" runat="server" ImageUrl="~/Includes/Images/ablogo3.png" />
+            </div>
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+                        <span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar">
+                        </span>
+                    </button>
+                    <asp:Label ID="lblFirstName" runat="server" Text="" Style="color: White; font-size: 20px"
+                        Font-Bold="true"></asp:Label>
+                    <br />
+                    <label id="lblDate" style="color: Silver; text-align: right">
+                    </label>
+                </div>
+                <%--<div class = "navbar-header">
+  
+      <a class = "navbar-brand">Analytic Brains</a>
+   </div>--%>
+                <div class="collapse navbar-collapse" id="myNavbar">
+                    <ul class="nav navbar-nav navbar-right">
+                        <li>
+                            <asp:LinkButton ForeColor="#ffffff" ID="btnHome" runat="server" Text="Home" OnClick="btnHome_Click"
+                                class="btn btn-link" UseSubmitBehavior="false"><span class="glyphicon glyphicon-home"></span>Home</asp:LinkButton></li>
+                        <li>
+                            <asp:LinkButton ForeColor="#ffffff" ID="btnTimesheet" runat="server" Text="Enter Time Sheet"
+                                OnClick="btnTimesheet_Click" class="btn btn-link" UseSubmitBehavior="false"><span class="glyphicon glyphicon-edit"></span>Enter Time Sheet</asp:LinkButton></li>
+                        <%--onclick="btnViewTimesheet_Click"  <li> <asp:LinkButton ForeColor="#ffffff" ID="btnViewTimesheet" runat="server" Text="View Time Sheet" OnClick="btnViewTimesheet_Click"
+                class="btn btn-link" UseSubmitBehavior="false"><span class="glyphicon glyphicon-folder-open"></span> View Time Sheet</asp:LinkButton></li>--%>
+                        <li id="btnViewTimesheet" onclick="testdd2();return false;" class="dropdown"><a class="dropdown-toggle btn btn-link"
+                            data-toggle="dropdown" style="color: #ffffff; background-color: #2970AD;" href="#">
+                            <span class="glyphicon glyphicon-time"></span>Time Sheet<span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="#" onclick="redirect1('1');return false;" style="color: #ffffff;" id="A1">
+                                    View Time sheet</a></li>
+                                <%-- changes by sof--%>
+                                <li runat="server" id="ApproveTimesheet"><a href="#" onclick="redirect1('2');return false;"
+                                    style="color: #ffffff;" id="lnkapprovetimesheeet">Approve Time sheet</a></li>
+                                <%-- changes by sof--%>
+                                <%-- <li><asp:LinkButton ForeColor="#ffffff"  ID="btnLMS" runat="server" Text="LMS" OnClick="btnLMS_Click" class="btn btn-link"> Apply Leave</asp:LinkButton></li>
+               <li><asp:LinkButton ForeColor="#ffffff"  ID="btnPermission" runat="server" Text="Permission" OnClick="btnPermission_Click" class="btn btn-link"> Apply Permission</asp:LinkButton></li>--%>
+                            </ul>
+                        </li>
+                        <%--  Added by sof--%>
+                        <li id="btntask" onclick="testdd3();return false;" class="dropdown"><a class="dropdown-toggle btn btn-link"
+                            data-toggle="dropdown" style="color: #ffffff; background-color: #2970AD;" href="#">
+                            <span class="glyphicon glyphicon-tasks"></span>Task<span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="#" onclick="redirect1('3');return false;" style="color: #ffffff;" id="lnkmaster">
+                                    Task Master</a></li>
+                                <li><a href="#" onclick="redirect1('4');return false;" style="color: #ffffff;" id="lnkassignment">
+                                    Task Assignment</a></li>
+                                    <li><a href="#" onclick="redirect1('13');return false;" style="color: #ffffff;" id="lnktaskdashboard">
+                                    Task Dashboard</a></li>
+                                <%--   <li><asp:LinkButton ForeColor="#ffffff" ID="btnTaskMaster" runat="server" Text="Task Master" class="btn btn-link"
+                OnClick="btnTaskMaster_Click" UseSubmitBehavior="false"><span class="glyphicon glyphicon-tasks"></span> Task Master</asp:LinkButton></li>
+                <li><asp:LinkButton ForeColor="#ffffff" ID="btnTaskManage" runat="server" Text="Task Assigment" class="btn btn-link"
+                OnClick="btnTaskManage_Click" UseSubmitBehavior="false"><span class="glyphicon glyphicon-tag"></span> Task Assignment</asp:LinkButton></li>--%>
+                            </ul>
+                        </li>
+                        <%--   Till here--%>
+                        <li>
+                            <asp:LinkButton ForeColor="#ffffff" ID="btnAdmin" runat="server" Text="Admin" OnClick="btnAdmin_Click"
+                                class="btn btn-link" UseSubmitBehavior="false"><span class="glyphicon glyphicon-edit"></span>Admin</asp:LinkButton></li>
+                        <%--<li><asp:LinkButton ForeColor="#ffffff" ID="btnLMS" runat="server" Text="LMS" OnClick="btnLMS_Click" class="btn btn-link"><span class="glyphicon glyphicon-log-in"></span> LMS</asp:LinkButton></li> onclick="testddl();return false;"--%>
+                        <li id="ddllmslink" onclick="testddl();return false;" class="dropdown"><a class="dropdown-toggle btn btn-link"
+                            data-toggle="dropdown" style="color: #ffffff; background-color: #2970AD;" href="#">
+                            <span class="glyphicon glyphicon-log-in"></span>LMS<span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="#" onclick="redirect('1');return false;" style="color: #ffffff;" id="lnkAppLeave">
+                                    Leaves</a></li>
+                                <li><a href="#" onclick="redirect('2');return false;" style="color: #ffffff;" id="lnkAppPerm">
+                                    Permissions</a></li>
+                                <%-- <li><asp:LinkButton ForeColor="#ffffff"  ID="btnLMS" runat="server" Text="LMS" OnClick="btnLMS_Click" class="btn btn-link"> Apply Leave</asp:LinkButton></li>
+               <li><asp:LinkButton ForeColor="#ffffff"  ID="btnPermission" runat="server" Text="Permission" OnClick="btnPermission_Click" class="btn btn-link"> Apply Permission</asp:LinkButton></li>--%>
+                            </ul>
+                        </li>
+                        <li runat="server" id="ddlmanagement" onclick="testdd6();return false;" class="dropdown">
+                            <a class="dropdown-toggle btn btn-link" data-toggle="dropdown" style="color: #ffffff;
+                                background-color: #2970AD;" href="#"><span class="glyphicon glyphicon-menu-hamburger">
+                                </span>Management<span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="#" onclick="redirect1('10');return false;" style="color: #ffffff;" id="lnkreminder">
+                                    Reminder</a></li>
+                            </ul>
+                        </li>
+                        <li runat="server" id="ddlexpenses" onclick="testdd7();return false;" class="dropdown">
+                            <a class="dropdown-toggle btn btn-link" data-toggle="dropdown" style="color: #ffffff;
+                                background-color: #2970AD;" href="#"><span class="glyphicon glyphicon-menu-hamburger">
+                                </span>Operating Expenses<span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="#" onclick="redirect1('11');return false;" style="color: #ffffff;" id="lnkmaintenancerecords">
+                                    Maintenance Records</a></li>
+
+                            </ul>
+                        </li>
+                        <%--  Added by sof--%>
+                        <li id="ddlemployeeportal" onclick="testdd5();return false;" class="dropdown"><a
+                            class="dropdown-toggle btn btn-link" data-toggle="dropdown" style="color: #ffffff;
+                            background-color: #2970AD;" href="#"><span class="glyphicon glyphicon-th-list"></span>
+                            Employee Portal<span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="#" onclick="redirect1('7');return false;" style="color: #ffffff;" id="lnkpolicies">
+                                    Policies and Procedures</a></li>
+                                <li><a href="#" onclick="redirect1('8');return false;" style="color: #ffffff;" id="lnkpayslips">
+                                    Request Payslips</a></li>
+                                <li><a href="#" onclick="redirect1('9');return false;" style="color: #ffffff;" id="lnkholidaylists">
+                                    Holiday List</a></li>
+                                    <li><a href="#" onclick="redirect1('12');return false;" style="color: #ffffff;" id="lnkfeedback">
+                                   Feedback</a></li>
+                                <%--   <li><asp:LinkButton ForeColor="#ffffff" ID="btnTaskMaster" runat="server" Text="Task Master" class="btn btn-link"
+                OnClick="btnTaskMaster_Click" UseSubmitBehavior="false"><span class="glyphicon glyphicon-tasks"></span> Task Master</asp:LinkButton></li>
+                <li><asp:LinkButton ForeColor="#ffffff" ID="btnTaskManage" runat="server" Text="Task Assigment" class="btn btn-link"
+                OnClick="btnTaskManage_Click" UseSubmitBehavior="false"><span class="glyphicon glyphicon-tag"></span> Task Assignment</asp:LinkButton></li>--%>
+                            </ul>
+                        </li>
+                        <li id="ddlprofile" onclick="testdd4();return false;" class="dropdown"><a class="dropdown-toggle btn btn-link"
+                            data-toggle="dropdown" style="color: #ffffff; background-color: #2970AD;" href="#">
+                            <span class="glyphicon glyphicon-user"></span>Profile<span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="#" onclick="redirect1('5');return false;" style="color: #ffffff;" id="lnkpers">
+                                    Personal Information</a></li>
+                                <li><a href="#" onclick="redirect1('6');return false;" style="color: #ffffff;" id="lnkpass">
+                                    Change Password</a></li>
+                            </ul>
+                        </li>
+                        <%--   Till here--%>
+                        <%--<li><asp:LinkButton ForeColor="#ffffff" ID="btnProfile" runat="server" Text="Profile" OnClick="btnProfile_Click"
+                class="btn btn-link" UseSubmitBehavior="false"><span class="glyphicon glyphicon-user"></span> Profile</asp:LinkButton></li>
+                
+                <li><asp:LinkButton ForeColor="#ffffff" ID="btnPassword" runat="server" Text="Change Password" OnClick="btnPassword_Click"
+                class="btn btn-link" UseSubmitBehavior="false"><span class="glyphicon glyphicon-lock"></span> Change Password</asp:LinkButton></li>--%>
+                        <li>
+                            <asp:LinkButton ForeColor="#ffffff" ID="btnLogout" Text="Logout" runat="server" CausesValidation="false"
+                                class="btn btn-link" OnClick="btnlogout_Click" UseSubmitBehavior="false"><span class="glyphicon glyphicon-off"></span> Logout</asp:LinkButton></li>
+                        <%--  <li class="dropdown">
+        <a style="color:#f49430" class="dropdown-toggle" data-toggle="dropdown" href="#"><span class="glyphicon glyphicon-wrench"></span>
+        <span class="caret"></span></a>
+        <ul class="dropdown-menu">
+          
+         
+          </ul>
+      </li>--%>
+                    </ul>
+                </div>
+            </div>
+    </nav>
+    <div class="container" align="center" style="position: fixed; z-index: 1; width: 99% !important;
+        background-color: white;">
+    </div>
+    <div class="body" style="height: 90vh; overflow-y: auto;">
+        <div class="container" style="width: 90%!important; padding-top: 20px">
+            <asp:ContentPlaceHolder ID="cphBasic" runat="server">
+            </asp:ContentPlaceHolder>
+            <asp:ContentPlaceHolder ID="cphBasic_" runat="server">
+            </asp:ContentPlaceHolder>
+        </div>
+    </div>
+    </form>
+</body>
+</html>

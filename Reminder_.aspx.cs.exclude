@@ -1,0 +1,274 @@
+﻿using System;
+using System.Collections;
+using System.Configuration;
+using System.Data;
+using System.Linq;
+using System.Web;
+using System.Web.Security;
+using System.Web.UI;
+using System.Web.UI.HtmlControls;
+using System.Web.UI.WebControls;
+using System.Web.UI.WebControls.WebParts;
+using System.Xml.Linq;
+using System.Data.SqlClient;
+using AnalyticBrainsDO;
+using AnalyticBrainsBL;
+using AnalyticBrainsDAL;
+using System.Globalization;
+
+public partial class Includes_WebForm_Reminder : System.Web.UI.Page
+{
+
+    TimesheetDO ObjTimesheetDO = new TimesheetDO();
+    TimesheetBL ObjTimesheetBL = new TimesheetBL();
+    EmployeeDO ObjEmployeeDO = new EmployeeDO();
+    EmployeeBL ObjEmployeeBL = new EmployeeBL();
+    ResultDO retresultdo = new ResultDO();
+    public int i = 0;
+    public string sessionid = string.Empty;
+    public string Username = string.Empty;
+    public int EmpId = 0;
+   
+    protected void Page_Load(object sender, EventArgs e)
+    {
+        if (Request.QueryString["sessionid"] != null)
+        {
+            sessionid = Request.QueryString["sessionid"].ToString();
+        }
+        if (Request.QueryString["Username"] != null)
+        {
+            Username = Request.QueryString["Username"].ToString();
+        }
+        if (Request.QueryString["EmpId"] != null)
+        {
+            EmpId = Convert.ToInt32(Request.QueryString["EmpId"].ToString());
+        }
+        //this.txtDate.Text = Request[this.txtDate.UniqueID];
+        if (!this.IsPostBack)
+        {
+         //   txtDate.va = DateTime.Now.ToString("dd-MM-yyyy");
+            DataTable dt = new DataTable();
+            dt = (DataTable)ViewState["CurrentTable"];
+            if (dt == null) SetInitialRow();
+            else if (dt.Rows.Count == 0)
+            {
+                SetInitialRow();
+            }
+           
+        }
+    }
+  
+    protected void btnReminderSave_Click(object sender, EventArgs e)
+    {
+        try
+        {
+
+            Remindersave();
+        }
+        catch (Exception ex)
+        {
+            throw (ex);
+        }
+
+
+    }
+
+
+    private void getrow()
+    {
+
+        int rowIndex = 0;
+        try
+        {
+            if (ViewState["CurrentTable"] != null)
+            {
+                DataTable dtCurrentTable = (DataTable)ViewState["CurrentTable"];
+            }
+            else
+            {
+                Response.Write("ViewState is null");
+            }
+            DataTable dt = (DataTable)ViewState["CurrentTable"];
+            if (grdreminderlist.Rows.Count > 0)
+            {
+                for (int i = 0; i < grdreminderlist.Rows.Count; i++)
+                {
+
+                    TextBox TaskName = (TextBox)grdreminderlist.Rows[rowIndex].Cells[1].FindControl("txtTaskName");
+                    TextBox TaskFrequency = (TextBox)grdreminderlist.Rows[rowIndex].Cells[2].FindControl("txtTaskFrequency");
+                    //DateTime Dateofreminder = Convert.ToDateTime(DateTime.ParseExact(txtDateofreminder.Text, "MM/dd/yyyy", null));
+                    Label RowId = (Label)grdreminderlist.Rows[rowIndex].Cells[6].FindControl("lblRowId");
+
+
+                    if (RowId.Text == "")
+                    {
+                        int j = 0;
+                        RowId.Text = j.ToString();
+                    }
+
+                    dt.Rows[i]["TaskName"] = TaskName.Text.ToString();
+                    dt.Rows[i]["TaskFrequency"] = TaskFrequency.Text.ToString();
+                    dt.Rows[i]["id"] = RowId.Text.ToString();
+                    rowIndex++;
+                }
+            }
+            dt.AcceptChanges();
+            ViewState["CurrentTable"] = dt;
+        }
+        catch (Exception ex)
+        {
+            throw (ex);
+        }
+    }
+
+
+    protected void Remindersave()
+    {
+        int rowIndex = 0;
+        DataTable dt = (DataTable)ViewState["CurrentTable"];
+        if (dt.Rows.Count > 0)
+        {
+            for (int i = 0; i < dt.Rows.Count; i++)
+            {
+
+                TextBox TaskName = (TextBox)grdreminderlist.Rows[rowIndex].Cells[1].FindControl("txtTaskName");
+                TextBox TaskFrequency = (TextBox)grdreminderlist.Rows[rowIndex].Cells[2].FindControl("txtTaskFrequency");
+                //DateTime Dateofreminder = Convert.ToDateTime(DateTime.ParseExact(txtDate.Text, "MM/dd/yyyy", null));
+               
+               
+                Label RowId = (Label)grdreminderlist.Rows[rowIndex].Cells[9].FindControl("lblRowId");
+
+
+                if (RowId.Text == "")
+                {
+                    int j = 0;
+                    RowId.Text = j.ToString();
+                }
+
+                rowIndex++;
+
+                ObjTimesheetDO.TaskNameReminder = Convert.ToString(TaskName.Text);
+                ObjTimesheetDO.TaskFrequency = Convert.ToString(TaskFrequency.Text);
+                //ObjTimesheetDO.Dateofreminder = Convert.ToDateTime(DateTime.ParseExact(txtDate.Text, "dd-MM-yyyy", null));
+                ObjTimesheetDO.EmpId = EmpId;
+                ObjTimesheetDO.RowNum = Convert.ToInt32(RowId.Text);
+
+
+
+            }
+
+        }
+        ScriptManager.RegisterStartupScript(this, this.GetType(), "alert", "alert('Saved successfully!');", true);
+
+    }
+    protected void ButtonAddReminder_Click(object sender, EventArgs e)
+    {
+        AddNewRowToReminderGrid();
+
+    }
+    private void AddNewRowToReminderGrid()
+    {
+
+        int rowIndex = 0;
+
+        if (ViewState["CurrentTable"] != null)
+        {
+            DataTable dtCurrentTable = (DataTable)ViewState["CurrentTable"];
+            //DataTable dtCurrentTable = grdreminderlist.DataSource as DataTable;
+            DataRow drCurrentRow = null;
+
+            if (dtCurrentTable.Rows.Count > 0)
+            {
+                for (int i = 1; i <= dtCurrentTable.Rows.Count; i++)
+                {
+
+                    TextBox TaskName = (TextBox)grdreminderlist.Rows[rowIndex].Cells[1].FindControl("txtTaskName");
+                    TextBox TaskFrequency = (TextBox)grdreminderlist.Rows[rowIndex].Cells[2].FindControl("txt TaskFrequency");
+                    drCurrentRow = dtCurrentTable.NewRow();
+                    //drCurrentRow["Row"] = i + 1;
+                    dtCurrentTable.Rows[i - 1]["TaskName"] = string.Empty;
+                    dtCurrentTable.Rows[i - 1]["TaskFrequency"] = string.Empty;
+                    dtCurrentTable.Rows[i - 1]["txtDate"] = string.Empty;
+                    dtCurrentTable.Rows[i - 1]["Peopletobereminded"] = string.Empty;
+
+                }
+            }
+            dtCurrentTable.Rows.Add(drCurrentRow);
+            dtCurrentTable.AcceptChanges();
+            ViewState["CurrentTable"] = dtCurrentTable;
+            grdreminderlist.DataSource = dtCurrentTable;
+            grdreminderlist.DataBind();
+            grdreminderlist.Rows[rowIndex].Focus();
+
+        }
+        else
+        {
+            Response.Write("ViewState is null");
+        }
+
+        //Set Previous Data on Postbacks
+
+        SetPreviousData();
+    }
+
+
+    private void SetPreviousData()
+    {
+        int rowIndex = 0;
+
+        if (ViewState["CurrentTable"] != null)
+        {
+            DataTable dt = (DataTable)ViewState["CurrentTable"];
+            if (dt.Rows.Count > 0)
+            {
+                for (int i = 0; i < dt.Rows.Count - 1; i++)
+                {
+                    //string Dateofreminder = txtDate.Text;
+                    TextBox TaskName = (TextBox)grdreminderlist.Rows[rowIndex].Cells[1].FindControl("txtTaskName");
+                    TextBox TaskFrequency = (TextBox)grdreminderlist.Rows[rowIndex].Cells[2].FindControl("txtTaskFrequency");
+                  //  Label RowId = (Label)grdreminderlist.Rows[rowIndex].Cells[6].FindControl("lblRowId");
+                    TaskName.Text = dt.Rows[i]["TaskName"].ToString();
+                    TaskFrequency.Text = dt.Rows[i]["TaskFrequency"].ToString();
+                    //RowId.Text = dt.Rows[i]["id"].ToString();
+                    rowIndex++;
+                }
+            }
+        }
+    }
+    protected void grdreminderlist_RowDataBound(object sender, GridViewRowEventArgs e)
+    {
+       
+    }
+    protected void grdreminderlist_RowDeleting(object sender, GridViewDeleteEventArgs e)
+    {
+        
+
+    }
+    private void SetInitialRow()
+    {
+        DataTable dt = new DataTable();
+        DataRow dr = null;
+        dt.Columns.Add(new DataColumn("TaskName", typeof(string)));
+        dt.Columns.Add(new DataColumn("TaskFrequency", typeof(string)));
+        dt.Columns.Add(new DataColumn("txtDate", typeof(string)));
+        dt.Columns.Add(new DataColumn("Peopletobereminded", typeof(string)));
+       
+
+        dr = dt.NewRow();
+        dt.Rows.Add(dr);
+
+        dt.Rows[0]["TaskName"] = string.Empty;
+        dt.Rows[0]["TaskFrequency"] = string.Empty;
+        dt.Rows[0]["txtDate"] = string.Empty;
+        dt.Rows[0]["Peopletobereminded"] = string.Empty;
+       
+        //Store the DataTable in ViewState
+        ViewState["CurrentTable"] = dt;
+        grdreminderlist.DataSource = dt;
+        grdreminderlist.DataBind();
+
+
+    }
+   
+   
+}

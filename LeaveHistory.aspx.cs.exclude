@@ -1,0 +1,1033 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+using AnalyticBrainsDO;
+using AnalyticBrainsDAL;
+using AnalyticBrainsBL;
+using System.Data.SqlClient;
+using LeaveManagementBL;
+using LeaveManagementDAL;
+using LeaveManagementDO;
+using System.Data;
+using System.Configuration;
+using System.IO;
+
+public partial class Includes_WebForm_LeaveHistory : System.Web.UI.Page
+{
+    LeaveHistoryDO ObjLeaveHistoryDO = new LeaveHistoryDO();
+    LeaveHistoryBL ObjLeaveHistoryBL = new LeaveHistoryBL();
+    public string sessionid = string.Empty;
+    public string Username = string.Empty;
+    public int EmpId = 0;
+    public string HeaderLeaveName = string.Empty;
+    int GetCount = 0;
+    decimal TotalBeginingBalance = 0;
+    decimal TotalEarnedLeave = 0;
+    decimal TotalAvailed = 0;
+    decimal TotalCurrentbalance = 0;
+
+    //Decimal Noofdays = 0;
+    public enum MessageType { Success, Error, Info, Warning };
+
+
+    protected void Page_Load(object sender, EventArgs e)
+    {
+
+
+        if (!IsPostBack)
+        {
+
+
+            if (Session["FirstName"].ToString() != "")
+            {
+
+            }
+            if (Request.QueryString["sessionid"] != null)
+            {
+                sessionid = Request.QueryString["sessionid"].ToString();
+            }
+
+            if (Request.QueryString["Username"] != null)
+            {
+                Username = Request.QueryString["Username"].ToString();
+                Session["Username"] = Username;
+
+            }
+
+            if (Request.QueryString["EmpId"] != null)
+            {
+                EmpId = Convert.ToInt32(Request.QueryString["EmpId"].ToString());
+                Session["EmpId"] = EmpId;
+
+            }
+
+            GetLeaveHistory();
+            getLeavebalance();
+            getLeaveDecision();
+            getRptmgr();
+
+
+            int IsSubmit = Convert.ToInt32(Session["IsSubmit"]);
+            if (IsSubmit == 1)
+            {
+
+                ShowMessage("Leave has been Applied successfully", MessageType.Info);
+
+            }
+
+
+            GetCount = CheckCredential(Session["Username"].ToString());
+            if (GetCount > 0)
+            {
+                approvals.Visible = true;
+            }
+            else
+            {
+                approvals.Visible = false;
+
+            }
+
+            Session["IsSubmit"] = 0;
+            //UpnlMain.Update();
+            txtstartdate.Attributes.Add("readonly", "readonly");
+            txtEndDate.Attributes.Add("readonly", "readonly");
+            txtNoofdays.Attributes.Add("readonly", "readonly");
+
+        }
+    }
+
+    public void GetLeaveHistory()
+    {
+
+        ObjLeaveHistoryDO.EmpId = Convert.ToInt32(Session["EmpId"]);
+        ObjLeaveHistoryDO = ObjLeaveHistoryBL.bindgrdleavehistory(ObjLeaveHistoryDO);
+        DataTable dt = new DataTable();
+        dt = ObjLeaveHistoryDO.Resultdtset.Tables[0];
+
+        //ViewState["LeaveHistory"] = ObjLeaveHistoryDO.Resultdtset.Tables[0];
+        //grdLeaveHistory.DataSource = ViewState["LeaveHistory"];
+
+        grdLeaveHistory.DataSource = dt;
+        grdLeaveHistory.DataBind();
+        //grdLeaveHistory.UseAccessibleHeader = true;
+
+        if (grdLeaveHistory.Rows.Count > 0)
+        {
+
+            TableCellCollection cells = grdLeaveHistory.HeaderRow.Cells;
+
+            //grdLeaveHistory.HeaderRow.Cells[0].Attributes["data-class"] = "expand";
+            //grdLeaveHistory.HeaderRow.Cells[0].Attributes["data-type"] = "numeric";
+
+            //grdLeaveHistory.HeaderRow.Cells[1].Attributes["data-hide"] = "phone";
+            //grdLeaveHistory.HeaderRow.Cells[2].Attributes["data-hide"] = "phone";
+            //grdLeaveHistory.HeaderRow.Cells[3].Attributes["data-hide"] = "phone";
+            //grdLeaveHistory.HeaderRow.Cells[4].Attributes["data-hide"] = "phone";
+            //grdLeaveHistory.HeaderRow.Cells[5].Attributes["data-hide"] = "phone";
+            //grdLeaveHistory.HeaderRow.Cells[6].Attributes["data-hide"] = "phone";
+
+            grdLeaveHistory.HeaderRow.TableSection = TableRowSection.TableHeader;
+        }
+        else
+        {
+
+
+            LabelnoreC.Text = "No Records Found";
+            LabelnoreC.Visible = true;
+        }
+        //UpnlMain.Update();
+
+    }
+    //protected void grdLeaveHistory_prerender(object sender, EventArgs e)
+    //{
+    //    grdLeaveHistory.UseAccessibleHeader = false;
+    //    grdLeaveHistory.HeaderRow.TableSection = TableRowSection.TableHeader;
+
+    //}
+
+    public void getLeavebalance()
+    {
+        {
+
+            ObjLeaveHistoryDO.EmpId = Convert.ToInt32(Session["EmpId"]);
+            ObjLeaveHistoryDO = ObjLeaveHistoryBL.bindgrdLeavebalance(ObjLeaveHistoryDO);
+            ViewState["Leavebalance"] = ObjLeaveHistoryDO.Resultdtset.Tables[0];
+            grdLeaveBalance.DataSource = ViewState["Leavebalance"];
+            grdLeaveBalance.DataBind();
+            grdLeaveBalance.UseAccessibleHeader = true;
+
+            if (grdLeaveBalance.Rows.Count > 0)
+            {
+
+                TableCellCollection cells = grdLeaveBalance.HeaderRow.Cells;
+
+                grdLeaveBalance.HeaderRow.Cells[0].Attributes["data-class"] = "expand";
+                grdLeaveBalance.HeaderRow.Cells[0].Attributes["data-type"] = "numeric";
+
+                grdLeaveBalance.HeaderRow.Cells[1].Attributes["data-hide"] = "phone";
+                grdLeaveBalance.HeaderRow.Cells[2].Attributes["data-hide"] = "phone";
+                grdLeaveBalance.HeaderRow.Cells[3].Attributes["data-hide"] = "phone";
+
+                grdLeaveBalance.HeaderRow.TableSection = TableRowSection.TableHeader;
+            }
+
+            //UpnlMain.Update();
+        }
+    }
+
+    public void getLeaveDecision()
+    {
+
+        ObjLeaveHistoryDO.EmpId = Convert.ToInt32(Session["EmpId"]);
+
+        ObjLeaveHistoryDO = ObjLeaveHistoryBL.bindgrdLeaveDecision(ObjLeaveHistoryDO);
+        ViewState["LeaveDecision"] = ObjLeaveHistoryDO.Resultdtset.Tables[0];
+        grdLeaveDecision.DataSource = ViewState["LeaveDecision"];
+        grdLeaveDecision.DataBind();
+        grdLeaveDecision.UseAccessibleHeader = true;
+
+        if (grdLeaveDecision.Rows.Count > 0)
+        {
+
+            btnApprove.Visible = true;
+            btnOnHold.Visible = true;
+            btnReject.Visible = true;
+
+        }
+        else
+        {
+
+            btnApprove.Visible = false;
+            btnOnHold.Visible = false;
+            btnReject.Visible = false;
+
+            //ShowMessage("No Records Found", MessageType.Info);
+            lblNoRecords.Text = "No Records Found";
+            lblNoRecords.Visible = true;
+        }
+
+        if (grdLeaveDecision.Rows.Count > 0)
+        {
+
+            TableCellCollection cells = grdLeaveDecision.HeaderRow.Cells;
+            grdLeaveDecision.HeaderRow.Cells[0].Attributes["data-class"] = "expand";
+            grdLeaveDecision.HeaderRow.Cells[0].Attributes["data-type"] = "numeric";
+
+            grdLeaveDecision.HeaderRow.Cells[1].Attributes["data-hide"] = "phone";
+            grdLeaveDecision.HeaderRow.Cells[2].Attributes["data-hide"] = "phone";
+            grdLeaveDecision.HeaderRow.Cells[3].Attributes["data-hide"] = "phone";
+            grdLeaveDecision.HeaderRow.Cells[4].Attributes["data-hide"] = "phone";
+            grdLeaveDecision.HeaderRow.Cells[5].Attributes["data-hide"] = "phone";
+            grdLeaveDecision.HeaderRow.Cells[6].Attributes["data-hide"] = "phone";
+            grdLeaveDecision.HeaderRow.Cells[7].Attributes["data-hide"] = "phone";
+            grdLeaveDecision.HeaderRow.Cells[8].Attributes["data-hide"] = "phone";
+
+
+            grdLeaveDecision.HeaderRow.TableSection = TableRowSection.TableHeader;
+
+        }
+
+    }
+
+    protected void grdLeaveBalance_RowCommand(Object sender, GridViewCommandEventArgs e)
+    {
+
+
+        if (e.CommandName == "lnkApply")
+        {
+
+            clndtxtStartDate.SelectedDate = DateTime.Now.Date;
+            clndtxtEndDate.SelectedDate = DateTime.Now.Date;
+
+            int index = Convert.ToInt32(e.CommandArgument);
+
+            Session["LeaveID"] = index;
+
+            string LeaveName = GetLeaveName(index);
+
+            lblLeaveNamePopup.Text = LeaveName;
+
+            modalPopup.Show();
+
+            ClearPopup();
+
+            // UpnlBalance.Update();
+            //UpnlMain.Update();
+
+        }
+
+    }
+
+    public string GetTruncatedString(string lblReason)
+    {
+        if (lblReason.Length > 50)
+        {
+            var charlimit = lblReason.Substring(0, 50);
+            var aaa = '.';
+            var concatetest = charlimit + aaa + aaa + aaa + aaa;
+            return concatetest;
+        }
+        else
+            return lblReason;
+    }
+
+    public string GetTruncatedString_approvals(string lblReason_approvals)
+    {
+        if (lblReason_approvals.Length > 15)
+        {
+            var charlimit = lblReason_approvals.Substring(0, 15);
+            var aaa = '.';
+            var concatetest = charlimit + aaa + aaa + aaa + aaa;
+            return concatetest;
+        }
+        else
+            return lblReason_approvals;
+    }
+
+    protected void btnsubmit_Click(object sender, EventArgs e)
+    {
+        //String a = hdfld.Value.ToString();
+        int Result = 0;
+
+        string URL = "";
+        try
+        {
+            DateTime mStartDate = Convert.ToDateTime(DateTime.ParseExact(txtstartdate.Text, "MM-dd-yyyy", null));
+            DateTime mEndDate = Convert.ToDateTime(DateTime.ParseExact(txtEndDate.Text, "MM-dd-yyyy", null));
+            //if (mStartDate.DayOfWeek = DayOfWeek.Sunday && mStartDate.DayOfWeek = DayOfWeek.Saturday)
+
+            string Restrict = "01/01/2016";
+            DateTime ConRestrict = Convert.ToDateTime(Restrict);
+
+            if (mStartDate < ConRestrict)
+            {
+                ShowMessage("You are Not Allowed to Apply Leave for the Previous Year", MessageType.Error);
+                ClearPopup();
+                modalPopup.Show();
+                return;
+
+            }
+            if (mStartDate.DayOfWeek == DayOfWeek.Saturday)
+            {
+                ShowMessage("Selected Day is an Holiday", MessageType.Error);
+                ClearPopup();
+                modalPopup.Show();
+                return;
+            }
+            if (mStartDate.DayOfWeek == DayOfWeek.Sunday)
+            {
+                ShowMessage("Selected Day is an Holiday", MessageType.Error);
+                ClearPopup();
+                modalPopup.Show();
+                return;
+            }
+
+
+            if (mStartDate > mEndDate)
+            {
+                ShowMessage("End date should be > = Start date", MessageType.Error);
+                // Page.ClientScript.RegisterClientScriptBlock(this.GetType(), "alert", "alert('End date should not less than equal to Start date ')", true);
+                ClearPopup();
+                modalPopup.Show();
+                return;
+            }
+
+
+
+            if (Convert.ToDecimal(txtNoofdays.Text) <= 0)
+            {
+                ShowMessage("No.of.days cannot be a zero and negative value", MessageType.Error);
+                //Page.ClientScript.RegisterClientScriptBlock(this.GetType(), "alert", "alert('No.of.days cannot be a zero and negative value')", true);
+                ClearPopup();
+                modalPopup.Show();
+                return;
+            }
+
+            ObjLeaveHistoryDO.Startdate = Convert.ToDateTime(DateTime.ParseExact(txtstartdate.Text, "MM-dd-yyyy", null));
+            ObjLeaveHistoryDO.EndDate = Convert.ToDateTime(DateTime.ParseExact(txtEndDate.Text, "MM-dd-yyyy", null));
+            ObjLeaveHistoryDO.Noofdays = Convert.ToString(txtNoofdays.Text);
+            ObjLeaveHistoryDO.Frequency = ddlDuration.SelectedIndex;
+            ObjLeaveHistoryDO.Reason = txtReason.Text;
+
+            ObjLeaveHistoryDO.EmpId = Convert.ToInt32(Session["EmpId"]);
+            ObjLeaveHistoryDO.Rptmgr = Convert.ToInt32(Session["RptMgrId"]);
+            ObjLeaveHistoryDO.Status = 0;   // 0-Pending ,1-Approved ,2 -Reject
+            ObjLeaveHistoryDO.LeaveID = Convert.ToInt32(Session["LeaveID"]);
+
+            ObjLeaveHistoryBL.InsertLeaveApplication(ObjLeaveHistoryDO);
+
+
+            GetLeaveHistory();
+            getLeavebalance();
+
+            Session["IsSubmit"] = 1;
+
+            URL = Request.Url.AbsoluteUri;
+            Response.Redirect(URL);
+
+
+            //Page.ClientScript.RegisterClientScriptBlock(this.GetType(), "alert", "OnApply()", true);
+        }
+
+        catch (Exception ex)
+        {
+
+            if (URL == "")
+            {
+
+                string filePath = @"D:\Error.txt";
+
+                using (StreamWriter writer = new StreamWriter(filePath, true))
+                {
+                    writer.WriteLine("Message :" + ex.Message + "<br/>" + Environment.NewLine + "StackTrace :" + ex.StackTrace +
+                       "" + Environment.NewLine + "Date :" + DateTime.Now.ToString());
+                    writer.WriteLine(Environment.NewLine + "-----------------------------------------------------------------------------" + Environment.NewLine);
+                }
+
+                Response.Redirect("Error.htm");
+
+            }
+            //throw ex;
+
+        }
+
+    }
+
+    private void getRptmgr()
+    {
+
+        try
+        {
+            ObjLeaveHistoryDO.EmpId = Convert.ToInt32(Session["EmpId"]);
+            ObjLeaveHistoryDO = ObjLeaveHistoryBL.GetReportManagerName(ObjLeaveHistoryDO);
+            // ObjLeaveHistoryDO.Rptmgr = reportmanagername;
+
+            int RptMgrId = Convert.ToInt32(ObjLeaveHistoryDO.Resultdtset.Tables[0].Rows[0][2]);
+            Session["RptMgrId"] = RptMgrId;
+
+            string RptMgrName = ObjLeaveHistoryDO.Resultdtset.Tables[0].Rows[0][3].ToString();
+
+            lblRptmgr.Text = RptMgrName;
+
+        }
+        catch (Exception ex)
+        {
+            //throw ex;
+            string filePath = @"D:\Error.txt";
+
+            using (StreamWriter writer = new StreamWriter(filePath, true))
+            {
+                writer.WriteLine("Message :" + ex.Message + "<br/>" + Environment.NewLine + "StackTrace :" + ex.StackTrace +
+                   "" + Environment.NewLine + "Date :" + DateTime.Now.ToString());
+                writer.WriteLine(Environment.NewLine + "-----------------------------------------------------------------------------" + Environment.NewLine);
+            }
+
+            Response.Redirect("Error.htm");
+
+        }
+    }
+
+    private void ClearPopup()
+    {
+
+        txtstartdate.Text = "";
+        txtEndDate.Text = "";
+        txtNoofdays.Text = "";
+        txtReason.Text = "";
+    }
+
+    private string GetLeaveName(int LeaveId)
+    {
+        // string mStrSQL = "SELECT LeaveType FROM LM_LeaveTYpe Where LeaveId =" + LeaveId + " AND Empid =  " + EmpId;
+        ObjLeaveHistoryDO.EmpId = Convert.ToInt32(Session["EmpId"]);
+        ObjLeaveHistoryDO.LeaveID = Convert.ToInt32(Session["LeaveID"]);
+        ObjLeaveHistoryDO = ObjLeaveHistoryBL.getleavetype(ObjLeaveHistoryDO);
+        ViewState["LeaveType"] = ObjLeaveHistoryDO.Resultdtset.Tables[0];
+
+        string leavetype = ObjLeaveHistoryDO.Resultdtset.Tables[0].Rows[0][0].ToString();
+        return leavetype;
+    }
+
+    protected void ShowMessage(string Message, MessageType type)
+    {
+        ScriptManager.RegisterStartupScript(this, this.GetType(), System.Guid.NewGuid().ToString(), "ShowMessage('" + Message + "','" + type + "');", true);
+
+    }
+
+    private bool validate()
+    {
+        bool flag = false;
+        foreach (GridViewRow gvrow in grdLeaveDecision.Rows)
+        {
+            CheckBox chk = (CheckBox)gvrow.FindControl("chkselect");
+            if (chk.Checked)
+            {
+                flag = true;
+                break;
+            }
+        }
+
+        if (!flag)
+        {
+            //ClientScript.RegisterStartupScript(this.GetType(), "", "alert('Please select atleast one checkbox');", true);
+            ShowMessage("Please select the Records to be Actioned", MessageType.Error);
+
+        }
+        return flag;
+    }
+
+    protected void btnApprove_Click(object sender, EventArgs e)
+    {
+        try
+        {
+            string Status = string.Empty;
+            ScriptManager.RegisterStartupScript(this, GetType(), "CheckboxIsChecked", "ClientCheck();", true);
+            //goto  exit;
+            if (validate() == true)
+            {
+                foreach (GridViewRow item in grdLeaveDecision.Rows)
+                {
+                    CheckBox chkbox = new CheckBox();
+                    string cmt = string.Empty;
+
+                    string SelectedEmpLeaveApplicationId = "";
+                    HiddenField hfd = new HiddenField();
+                    hfd = ((HiddenField)item.FindControl("hfdEmpLeaveApplicationId"));
+
+                    HiddenField hfdemp = new HiddenField();
+                    hfdemp = ((HiddenField)item.FindControl("hfdEmpid"));
+
+                    HiddenField hdfYear1 = new HiddenField();
+                    hdfYear1 = ((HiddenField)item.FindControl("hfdYear"));
+
+                    HiddenField hdfLeaveId1 = new HiddenField();
+                    hdfLeaveId1 = ((HiddenField)item.FindControl("hfdLeaveId"));
+
+                    HiddenField hfdStatusCode = new HiddenField();
+                    hfdStatusCode = ((HiddenField)item.FindControl("hfdStatusCode"));
+
+                    SelectedEmpLeaveApplicationId = hfd.Value;
+                    chkbox = ((CheckBox)item.FindControl("chkselect"));
+
+                    if (chkbox.Checked == true)
+                    {
+
+                        cmt = ((TextBox)item.FindControl("txtComments")).Text;
+                        Status = ((Label)item.FindControl("lblStatus")).Text;
+
+                        ObjLeaveHistoryDO.EmpLeaveApplicationId = Convert.ToInt32(SelectedEmpLeaveApplicationId);
+                        ObjLeaveHistoryDO.Status = 1;
+                        ObjLeaveHistoryDO.EmpId = Convert.ToInt32(hfdemp.Value);
+                        ObjLeaveHistoryDO.LeaveID = Convert.ToInt32(hdfLeaveId1.Value); ;
+                        ObjLeaveHistoryDO.YearId = Convert.ToInt32(hdfYear1.Value);
+                        ObjLeaveHistoryDO.Comments = cmt;
+                        //ObjLeaveHistoryDO.StatusComments = Status;
+                        ObjLeaveHistoryDO.Statuscode = Convert.ToByte(hfdStatusCode.Value);
+                        //ObjLeaveHistoryBL.LeaveDecisionMail(ObjLeaveHistoryDO);
+                        ObjLeaveHistoryBL.StatusApprove(ObjLeaveHistoryDO);
+
+
+
+
+                    }
+
+
+                }
+
+
+                if (Status == "Pending")
+                {
+                    ShowMessage("Leave Approved Successfully", MessageType.Info);
+
+                }
+
+                if (Status == "On Hold")
+                {
+                    ShowMessage("The On-holded Leave Approved Successfully", MessageType.Info);
+
+                }
+
+                if (Status == "Cancelled")
+                {
+                    ShowMessage("Leave cancellation approved", MessageType.Info);
+
+                }
+                //if (ObjLeaveHistoryDO.Status == 1)
+                //{
+
+
+                //}
+                getLeaveDecision();
+
+                //exit: ;
+            }
+        }
+        catch (Exception ex)
+        {
+            //throw (ex);
+            string filePath = @"D:\Error.txt";
+
+            using (StreamWriter writer = new StreamWriter(filePath, true))
+            {
+                writer.WriteLine("Message :" + ex.Message + "<br/>" + Environment.NewLine + "StackTrace :" + ex.StackTrace +
+                   "" + Environment.NewLine + "Date :" + DateTime.Now.ToString());
+                writer.WriteLine(Environment.NewLine + "-----------------------------------------------------------------------------" + Environment.NewLine);
+            }
+
+            Response.Redirect("Error.htm");
+
+        }
+
+    }
+
+    protected void btnReject_Click(object sender, EventArgs e)
+    {
+
+        try
+        {
+            string Status = string.Empty;
+            ScriptManager.RegisterStartupScript(this, GetType(), "CheckboxIsChecked", "ClientCheck();", true);
+
+            if (validate() == true)
+            {
+
+                foreach (GridViewRow item in grdLeaveDecision.Rows)
+                {
+                    CheckBox chkbox = new CheckBox();
+                    string cmt = string.Empty;
+                    //string Status = string.Empty;
+                    string SelectedEmpLeaveApplicationId = "";
+                    HiddenField hfd = new HiddenField();
+                    hfd = ((HiddenField)item.FindControl("hfdEmpLeaveApplicationId"));
+
+
+                    HiddenField hfdemp = new HiddenField();
+                    hfdemp = ((HiddenField)item.FindControl("hfdEmpid"));
+
+                    HiddenField hdfYear1 = new HiddenField();
+                    hdfYear1 = ((HiddenField)item.FindControl("hfdYear"));
+
+                    HiddenField hdfLeaveId1 = new HiddenField();
+                    hdfLeaveId1 = ((HiddenField)item.FindControl("hfdLeaveId"));
+
+                    HiddenField hfdStatusCode = new HiddenField();
+                    hfdStatusCode = ((HiddenField)item.FindControl("hfdStatusCode"));
+
+                    SelectedEmpLeaveApplicationId = hfd.Value;
+
+
+
+                    chkbox = ((CheckBox)item.FindControl("chkselect"));
+
+                    if (chkbox.Checked == true)
+                    {
+
+                        cmt = ((TextBox)item.FindControl("txtComments")).Text;
+                        Status = ((Label)item.FindControl("lblStatus")).Text;
+
+                        if (cmt == "")
+                        {
+                            ShowMessage("Please Enter Comment", MessageType.Error);
+                            // ScriptManager.RegisterStartupScript(this, this.GetType(), "alert", "alert('Please Enter Comment(Reason) Before Rejecting');", true);
+
+                            //UpnlLeaveHistory.Update();
+                            //UpnlLeaveBalance.Update();
+                            //UpnlLeaveDecision.Update();
+                            return;
+
+                        }
+                        if (Status == "Cancelled")
+                        {
+                            ObjLeaveHistoryDO.EmpId = Convert.ToInt32(hfdemp.Value);
+                            ObjLeaveHistoryDO.LeaveID = Convert.ToInt32(hdfLeaveId1.Value);
+                            ObjLeaveHistoryDO.EmpLeaveApplicationId = Convert.ToInt32(SelectedEmpLeaveApplicationId);
+                            ObjLeaveHistoryDO.Status = 1;
+                            ObjLeaveHistoryDO.Comments = cmt;
+                            ObjLeaveHistoryBL.CancelRejected(ObjLeaveHistoryDO);
+                        }
+                        else
+                        {
+                            ObjLeaveHistoryDO.EmpId = Convert.ToInt32(hfdemp.Value);
+                            ObjLeaveHistoryDO.LeaveID = Convert.ToInt32(hdfLeaveId1.Value);
+                            ObjLeaveHistoryDO.YearId = Convert.ToInt32(hdfYear1.Value);
+
+                            ObjLeaveHistoryDO.EmpLeaveApplicationId = Convert.ToInt32(SelectedEmpLeaveApplicationId);
+                            ObjLeaveHistoryDO.Status = 2;
+                            ObjLeaveHistoryDO.Comments = cmt;
+                            //ObjLeaveHistoryDO.StatusComments = Status;
+                            ObjLeaveHistoryDO.Statuscode = Convert.ToByte(hfdStatusCode.Value);
+                            //ObjLeaveHistoryBL.LeaveDecisionMail(ObjLeaveHistoryDO);
+                            ObjLeaveHistoryBL.StatusRejected(ObjLeaveHistoryDO);
+
+
+                            //ObjLeaveHistoryBL.CancelRejected(ObjLeaveHistoryDO);
+
+                        }
+                    }
+
+
+                }
+                if (Status == "Pending")
+                {
+                    ShowMessage("Selected Leave has been Rejected", MessageType.Info);
+
+                }
+
+                if (Status == "On Hold")
+                {
+                    ShowMessage("The On-holded Leave Rejected", MessageType.Info);
+
+
+                }
+
+                if (Status == "Cancelled")
+                {
+                    ShowMessage("Cancellation Leave has been Rejected", MessageType.Info);
+
+                }
+                getLeaveDecision();
+            }
+        }
+        catch (Exception ex)
+        {
+
+            //throw (ex);
+            string filePath = @"D:\Error.txt";
+
+            using (StreamWriter writer = new StreamWriter(filePath, true))
+            {
+                writer.WriteLine("Message :" + ex.Message + "<br/>" + Environment.NewLine + "StackTrace :" + ex.StackTrace +
+                   "" + Environment.NewLine + "Date :" + DateTime.Now.ToString());
+                writer.WriteLine(Environment.NewLine + "-----------------------------------------------------------------------------" + Environment.NewLine);
+            }
+
+            Response.Redirect("Error.htm");
+
+        }
+
+
+    }
+
+    protected void btnOnHold_Click(object sender, EventArgs e)
+    {
+        try
+        {
+            string Status = string.Empty;
+            ScriptManager.RegisterStartupScript(this, GetType(), "CheckboxIsChecked", "ClientCheck();", true);
+
+
+            if (validate() == true)
+            {
+
+                foreach (GridViewRow item in grdLeaveDecision.Rows)
+                {
+                    CheckBox chkbox = new CheckBox();
+                    string cmt = string.Empty;
+
+                    string SelectedEmpLeaveApplicationId = "";
+
+
+                    HiddenField hfd = new HiddenField();
+                    hfd = ((HiddenField)item.FindControl("hfdEmpLeaveApplicationId"));
+                    HiddenField hfdemp = new HiddenField();
+                    hfdemp = ((HiddenField)item.FindControl("hfdEmpid"));
+
+                    HiddenField hdfYear1 = new HiddenField();
+                    hdfYear1 = ((HiddenField)item.FindControl("hfdYear"));
+
+                    HiddenField hdfLeaveId1 = new HiddenField();
+                    hdfLeaveId1 = ((HiddenField)item.FindControl("hfdLeaveId"));
+
+                    HiddenField hfdStatusCode = new HiddenField();
+                    hfdStatusCode = ((HiddenField)item.FindControl("hfdStatusCode"));
+
+                    SelectedEmpLeaveApplicationId = hfd.Value;
+
+
+
+                    chkbox = ((CheckBox)item.FindControl("chkselect"));
+
+                    if (chkbox.Checked == true)
+                    {
+
+                        cmt = ((TextBox)item.FindControl("txtComments")).Text;
+                        Status = ((Label)item.FindControl("lblStatus")).Text;
+
+                        if (cmt == "")
+                        {
+                            ShowMessage("Please enter Your comment for On-Holding", MessageType.Error);
+
+                            return;
+
+                        }
+                        if (Status == "Cancelled")
+                        {
+                            ObjLeaveHistoryDO.EmpLeaveApplicationId = Convert.ToInt32(SelectedEmpLeaveApplicationId);
+                            ObjLeaveHistoryDO.EmpId = Convert.ToInt32(hfdemp.Value);                             
+                            ObjLeaveHistoryDO.LeaveID = Convert.ToInt32(hdfLeaveId1.Value);
+                            ObjLeaveHistoryDO.Comments = cmt;
+                            ObjLeaveHistoryBL.CancelOnhold(ObjLeaveHistoryDO);
+                        }
+                        else
+                        {
+                            ObjLeaveHistoryDO.EmpId = Convert.ToInt32(hfdemp.Value);
+                            ObjLeaveHistoryDO.LeaveID = Convert.ToInt32(hdfLeaveId1.Value); ;
+                            ObjLeaveHistoryDO.YearId = Convert.ToInt32(hdfYear1.Value);
+                            ObjLeaveHistoryDO.EmpLeaveApplicationId = Convert.ToInt32(SelectedEmpLeaveApplicationId);
+                            ObjLeaveHistoryDO.Status = 3;
+                            ObjLeaveHistoryDO.Comments = cmt;
+                            //ObjLeaveHistoryDO.StatusComments = Status;
+                            ObjLeaveHistoryDO.Statuscode = Convert.ToByte(hfdStatusCode.Value);
+                            // ObjLeaveHistoryBL.LeaveDecisionMail(ObjLeaveHistoryDO);
+                            ObjLeaveHistoryBL.StatusOnHold(ObjLeaveHistoryDO);
+
+                        }
+                    }
+
+                }
+                if (Status == "Pending")
+                {
+                    ShowMessage("Selected Leave has been On-Holded", MessageType.Info);
+
+                }
+
+                if (Status == "Cancelled")
+                {
+                    ShowMessage("Leave Cancellation has been On-Holded", MessageType.Info);
+
+
+                }
+                getLeaveDecision();
+
+            }
+        }
+        catch (Exception ex)
+        {
+
+            //throw (ex);
+            string filePath = @"D:\Error.txt";
+
+            using (StreamWriter writer = new StreamWriter(filePath, true))
+            {
+                writer.WriteLine("Message :" + ex.Message + "<br/>" + Environment.NewLine + "StackTrace :" + ex.StackTrace +
+                   "" + Environment.NewLine + "Date :" + DateTime.Now.ToString());
+                writer.WriteLine(Environment.NewLine + "-----------------------------------------------------------------------------" + Environment.NewLine);
+            }
+
+            Response.Redirect("Error.htm");
+
+        }
+    }
+
+    //protected void btnLogout_Click(object sender, EventArgs e)
+    //{
+    //    string sessionid = Request.QueryString["sessionid"].ToString();
+
+    //    EmployeeDO ObjEmployeeDO = new EmployeeDO();
+    //    EmployeeBL ObjEmployeeBL = new EmployeeBL();
+
+    //    ObjEmployeeDO.sessionid = sessionid;
+    //    ObjEmployeeBL.logout(ObjEmployeeDO);
+
+    //    Session.Abandon();
+    //    Session.Contents.RemoveAll();
+    //    System.Web.Security.FormsAuthentication.SignOut();
+    //    Page.ClientScript.RegisterClientScriptBlock(this.GetType(), "alert", "alert('Your session has been successfully logout!')", true);
+
+    //    //Page.ClientScript.RegisterClientScriptBlock(this.GetType(), "alert", "alert('Your session has been successfully logout!');window.location ='Login.aspx';", true);
+    //    //ScriptManager.RegisterStartupScript(this, this.GetType(), "alert", "alert('Your session has been successfully logout!');window.location ='Login.aspx';", true);
+    //    Response.Redirect("LeavemanagementLogin.aspx");
+    //}
+
+    private int CheckCredential(string Username)
+    {
+        try
+        {
+
+            int GetCount = 0;
+            GetCount = ObjLeaveHistoryBL.ReportMGRLoginCredential(Username);
+            return GetCount;
+
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+            //string filePath = @"D:\Error.txt";
+
+            //using (StreamWriter writer = new StreamWriter(filePath, true))
+            //{
+            //    writer.WriteLine("Message :" + ex.Message + "<br/>" + Environment.NewLine + "StackTrace :" + ex.StackTrace +
+            //       "" + Environment.NewLine + "Date :" + DateTime.Now.ToString());
+            //    writer.WriteLine(Environment.NewLine + "-----------------------------------------------------------------------------" + Environment.NewLine);
+            //}
+
+            //Response.Redirect("Error.htm");
+        }
+
+    }
+
+    //protected void grdLeaveHistory_RowCommand(Object sender, GridViewCommandEventArgs e)
+    //{
+
+    //    if (e.CommandName == "LnkCancel")
+    //    {
+    //        try
+    //        {
+    //            //LinkButton lb = e.row.FindControl("MarkAsCompleteButton") as LinkButton;
+    //            int index = Convert.ToInt32(e.CommandArgument);
+
+    //            LeaveHistoryDAL objLeaveHistoryDAL = new LeaveHistoryDAL();
+    //            ObjLeaveHistoryDO.EmpLeaveApplicationId = index;
+    //            objLeaveHistoryDAL.LeaveCancel(ObjLeaveHistoryDO);
+    //            //LeaveCancel(LeaveHistoryDO objLeaveHistoryDO);
+
+    //            GetLeaveHistory();
+    //            getLeavebalance();
+    //            getLeaveDecision();
+    //            ShowMessage("Leave has been cancelled successfully ", MessageType.Info);
+
+    //            //Page.ClientScript.RegisterClientScriptBlock(this.GetType(), "alert", "alert('Leave has been cancelled successfully ')", true);
+
+    //        }
+
+
+    //        catch (Exception ex) { throw ex; }
+    //    }
+
+    //}
+    //protected void Dopostback()
+
+    protected void grdLeaveBalance_Databound(object sender, GridViewRowEventArgs e)
+    {
+        //if (e.Row.DataItem != null)
+
+        //{
+        if (e.Row.RowType == DataControlRowType.DataRow)
+        {
+            DataRowView dr = e.Row.DataItem as DataRowView;
+
+            HiddenField hdfBeginingBalance = (HiddenField)e.Row.FindControl("hdfBeginingBalance");
+            TotalBeginingBalance = TotalBeginingBalance + Convert.ToDecimal(hdfBeginingBalance.Value);
+
+            HiddenField hdfEarnedLeave = (HiddenField)e.Row.FindControl("hdfEarnedLeave");
+            TotalEarnedLeave = TotalEarnedLeave + Convert.ToDecimal(hdfEarnedLeave.Value);
+
+            HiddenField hdfAvailed = (HiddenField)e.Row.FindControl("hdfAvailed");
+            TotalAvailed = TotalAvailed + Convert.ToDecimal(hdfAvailed.Value);
+
+            HiddenField hdfCurrentBalance = (HiddenField)e.Row.FindControl("hdfCurrentBalance");
+            TotalCurrentbalance = TotalCurrentbalance + Convert.ToDecimal(hdfCurrentBalance.Value);
+
+
+
+        }
+        if (e.Row.RowType == DataControlRowType.Footer)
+        {
+            Label lblTotalBeginningbalance = (Label)e.Row.FindControl("lblTotalBeginningbalance");
+            lblTotalBeginningbalance.Text = TotalBeginingBalance.ToString();
+
+            Label lblTotalEarnedLeave = (Label)e.Row.FindControl("lblTotalEarnedLeave");
+            lblTotalEarnedLeave.Text = TotalEarnedLeave.ToString();
+
+            Label lblTotalAvailed = (Label)e.Row.FindControl("lblTotalAvailed");
+            lblTotalAvailed.Text = TotalAvailed.ToString();
+
+            Label lbltotalCurrentbalance = (Label)e.Row.FindControl("lbltotalCurrentbalance");
+            lbltotalCurrentbalance.Text = TotalCurrentbalance.ToString();
+
+
+        }
+        //}
+
+    }
+
+    protected void grdLeaveHistory_RowDataBound(Object sender, GridViewRowEventArgs e)
+    {
+        if (e.Row.RowType == DataControlRowType.DataRow)
+        {
+            if (e.Row.DataItem != null)
+            {
+                DataRowView dr = e.Row.DataItem as DataRowView;
+                // CheckBox chkActive = (CheckBox)e.Row.FindControl("chkActive");
+                HiddenField hdfStatus = (HiddenField)e.Row.FindControl("hdfEmpLeaveApplicationID");
+                LinkButton lnkCancel = (LinkButton)e.Row.FindControl("LnkCancel");
+                //Response.Write("RowDataBound" + hdfStatus.Value);
+                if (hdfStatus.Value == "Cancelled" || hdfStatus.Value == "Rejected" || hdfStatus.Value == "On Hold")
+                {
+                    lnkCancel.Enabled = false;
+                    lnkCancel.Attributes.Remove("href");
+                    lnkCancel.Attributes.Remove("onmouseover");
+                    lnkCancel.Attributes.Remove("onmouseout");
+                    lnkCancel.Attributes.CssStyle[HtmlTextWriterStyle.Color] = "gray";
+                    lnkCancel.Attributes.CssStyle[HtmlTextWriterStyle.Cursor] = "default";
+                    lnkCancel.Attributes.Add("onmouseover", lnkCancel.ToolTip = "You are not allowed to cancel this!!");
+
+
+
+
+                }
+
+            }
+        }
+    }
+
+    protected void grdLeaveHistory_RowCommand(Object sender, GridViewCommandEventArgs e)
+    {
+
+
+        if (e.CommandName == "LnkCancel")
+        {
+            try
+            {
+                int result = 0;
+                int index = Convert.ToInt32(e.CommandArgument);
+                LeaveHistoryDAL objLeaveHistoryDAL = new LeaveHistoryDAL();
+                ObjLeaveHistoryDO.EmpLeaveApplicationId = index;
+                ObjLeaveHistoryDO = objLeaveHistoryDAL.getvalue_LeaveCancel(ObjLeaveHistoryDO);
+                result = Convert.ToInt32(ObjLeaveHistoryDO.Resultdtset.Tables[0].Rows[0][0]);
+
+
+                if (result == 0)
+                {
+                    objLeaveHistoryDAL.BackdatedLeaveCancel(ObjLeaveHistoryDO);
+                    objLeaveHistoryDAL.LeaveCancel(ObjLeaveHistoryDO, result);
+                    ShowMessage("Leave Cancellation Request has been sent to the Reporting Manager", MessageType.Info);
+                }
+                else if (result == 1)
+                {
+                    objLeaveHistoryDAL.LeaveCancel(ObjLeaveHistoryDO, result);
+                    ShowMessage("Leave has been cancelled successfully ", MessageType.Info);
+                }
+                else { ShowMessage("You are Not Allowed to Cancel this Leave", MessageType.Error); return; }
+                // LeaveCancel(LeaveHistoryDO objLeaveHistoryDO);
+
+                GetLeaveHistory();
+                getLeavebalance();
+                getLeaveDecision();
+                //ShowMessage("Leave has been cancelled successfully ", MessageType.Info);
+
+                //Page.ClientScript.RegisterClientScriptBlock(this.GetType(), "alert", "alert('Leave has been cancelled successfully ')", true);
+
+            }
+
+
+            catch (Exception ex)
+            { //throw ex;
+                string filePath = @"D:\Error.txt";
+
+                using (StreamWriter writer = new StreamWriter(filePath, true))
+                {
+                    writer.WriteLine("Message :" + ex.Message + "<br/>" + Environment.NewLine + "StackTrace :" + ex.StackTrace +
+                       "" + Environment.NewLine + "Date :" + DateTime.Now.ToString());
+                    writer.WriteLine(Environment.NewLine + "-----------------------------------------------------------------------------" + Environment.NewLine);
+                }
+
+                Response.Redirect("Error.htm");
+            }
+        }
+
+    }
+}

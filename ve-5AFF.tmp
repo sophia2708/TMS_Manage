@@ -1,0 +1,337 @@
+﻿using System;
+using System.Collections;
+using System.Configuration;
+using System.Data;
+using System.Linq;
+using System.Web;
+using System.Web.Security;
+using System.Web.UI;
+using System.Web.UI.HtmlControls;
+using System.Web.UI.WebControls;
+using System.Web.UI.WebControls.WebParts;
+using System.Xml.Linq;
+using System.Data.SqlClient;
+using AnalyticBrainsDO;
+using AnalyticBrainsBL;
+using AnalyticBrainsDAL;
+using System.Globalization;
+
+public partial class Includes_WebForm_Home : System.Web.UI.Page
+{
+    TimesheetDO ObjTimesheetDO = new TimesheetDO();
+    TimesheetBL ObjTimesheetBL = new TimesheetBL();
+
+    EmployeeDO ObjEmployeeDO = new EmployeeDO();
+    EmployeeBL ObjEmployeeBL = new EmployeeBL();
+    ResultDO retresultdo = new ResultDO();
+
+    public string sessionid = string.Empty;
+    public string Username = string.Empty;
+    public int EmpId = 0;
+
+    protected void Page_Load(object sender, EventArgs e)
+    {
+        if (Request.QueryString["sessionid"] != null)
+        {
+            sessionid = Request.QueryString["sessionid"].ToString();
+        }
+        if (Request.QueryString["Username"] != null)
+        {
+            Username = Request.QueryString["Username"].ToString();
+        }
+        if (Request.QueryString["EmpId"] != null)
+        {
+            EmpId = Convert.ToInt32(Request.QueryString["EmpId"].ToString());
+        }
+
+        int inputvalue = 0;
+        if(!Page.IsPostBack)
+        {
+            GetEmpDashBoard();
+            GetEmpTaskSummary(inputvalue);
+            rbtnassignedto.Checked = true;
+            if(rbtnassignedto.Checked)
+            {
+               inputvalue = 1;
+               GetEmpDashBoard();
+               GetEmpTaskSummary(inputvalue);
+               //grdTaskSummary.Columns[1].Visible = false;
+               //grdTaskSummary.Columns[2].Visible = true;
+               grdTaskSummary.Visible = false;
+               grdsummary.Visible = true;
+            }
+            else
+            {
+
+            }
+        }
+    }
+
+    public void GetEmpDashBoard()
+    {
+        try
+        {
+           //DataSet ds = new DataSet();
+           ObjTimesheetDO.EmpId = EmpId;
+           retresultdo = ObjTimesheetBL.GetEmpDashBoard(ObjTimesheetDO);
+           lblForDay.Text = retresultdo.Resultdtset.Tables[0].Rows[0][0].ToString();
+           lblForWeek.Text = retresultdo.Resultdtset.Tables[0].Rows[0][1].ToString();
+           lblForMonth.Text = retresultdo.Resultdtset.Tables[0].Rows[0][2].ToString();
+        }
+        catch(Exception ex)
+        {
+            throw ex;
+        }
+    }
+
+    public void GetEmpTaskSummary(int inputvalue)
+    {
+        try
+        {
+            if (inputvalue == 0)
+            {
+                ObjTimesheetDO.EmpId = EmpId;
+                ObjTimesheetDO.inputvalue = inputvalue;
+                retresultdo = ObjTimesheetBL.GetEmpTaskSummary(ObjTimesheetDO);
+                grdTaskSummary.DataSource = retresultdo.Resultdtset.Tables[0];
+                grdTaskSummary.DataBind();
+            }
+            else
+            {
+                ObjTimesheetDO.EmpId = EmpId;
+                ObjTimesheetDO.inputvalue = inputvalue;
+                retresultdo = ObjTimesheetBL.GetEmpTaskSummary(ObjTimesheetDO);
+                grdsummary.DataSource = retresultdo.Resultdtset.Tables[0];
+                grdsummary.DataBind();
+            }
+        }
+        catch(Exception ex)
+        {
+            throw ex;
+        }
+    }
+
+    protected void rbtnassignedby_CheckedChanged(object sender, EventArgs e)
+    {
+        try
+        {
+            if(rbtnassignedby.Checked)     //task assigned by user
+            {
+               int inputvalue = 0;
+               GetEmpDashBoard();
+               GetEmpTaskSummary(inputvalue);
+               //grdTaskSummary.Columns[2].Visible = false;
+               //grdTaskSummary.Columns[1].Visible = true;
+               grdTaskSummary.Visible = true;
+               grdsummary.Visible = false;
+            }
+            else
+            { 
+               //grdTaskSummary.Visible = false;
+               //grdsummary.Visible = true;
+            }
+        }
+        catch(Exception ex)
+        {
+            throw ex;
+        }
+    }
+
+    protected void rbtnassignedto_CheckedChanged(object sender, EventArgs e)
+    {
+        try
+        {
+            if(rbtnassignedto.Checked)      //task assigned to user
+            {
+               int inputvalue = 1;
+               GetEmpDashBoard();
+               GetEmpTaskSummary(inputvalue);
+               //grdTaskSummary.Columns[1].Visible = false;
+               //grdTaskSummary.Columns[2].Visible = true;
+               grdTaskSummary.Visible = false;
+               grdsummary.Visible = true;
+            }
+            else
+            {
+                //grdsummary.Visible = true;
+                //grdTaskSummary.Visible = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+        }
+    }
+
+    //public string SortingExpression
+    //{
+    //    get
+    //    {
+    //        if (this.ViewState["SortExpression"] == null)
+    //            return "";
+    //        else
+    //            return (string)this.ViewState["SortExpression"];
+    //    }
+
+    //    set
+    //    {
+    //        this.ViewState["SortExpression"] = value;
+    //    }
+    //}
+     public SortDirection dir
+
+    {
+
+        get
+
+        {
+
+            if (ViewState["dirState"] == null)
+
+            {
+
+                ViewState["dirState"] = SortDirection.Ascending;
+
+            }
+
+            return (SortDirection)ViewState["dirState"];
+
+        } 
+
+        set
+
+        {
+
+            ViewState["dirState"] = value;
+
+        }
+
+ 
+
+    }
+
+    protected void grdTaskSummary_Sorting(object sender, GridViewSortEventArgs e)
+    {
+
+         BindData();
+
+        DataTable dt = new DataTable();
+
+        dt = ds.Tables[0];
+
+        {
+
+            string SortDir = string.Empty;
+
+            if (dir == SortDirection.Ascending)
+
+            {
+
+                dir = SortDirection.Descending;
+
+                SortDir = "Desc";
+
+            }
+
+            else
+
+            {
+
+                dir = SortDirection.Ascending;
+
+                SortDir = "Asc";
+
+            }
+
+            DataView sortedView = new DataView(dt);
+
+            sortedView.Sort = e.SortExpression + " " + SortDir;
+
+            grdTaskSummary.DataSource = sortedView;
+
+            grdTaskSummary.DataBind();
+
+        }
+
+    }
+
+    //    DataTable dtbl = new DataTable();
+    //     dtbl = ;//here get the datatable from db
+    //    if (ViewState["Sort Order"] == null)
+    //    {
+    //        dtbl.DefaultView.Sort = e.SortExpression+" DESC";
+    //        grdTaskSummary.DataSource = dtbl;
+    //        grdTaskSummary.DataBind();
+    //        ViewState["Sort Order"] = "DESC";
+    //    }
+    //    else
+    //    {
+    //        dtbl.DefaultView.Sort = e.SortExpression + "" + " ASC";
+    //        grdTaskSummary.DataSource = dtbl;
+    //        grdTaskSummary.DataBind();
+    //        ViewState["Sort Order"] = null;
+    //    }
+
+    //    DataTable m_DataTable = grdTaskSummary.DataSource as DataTable;
+
+    //    if (m_DataTable != null)
+    //    {
+    //        DataView m_DataView = new DataView(m_DataTable);
+    //        SortingExpression = e.SortExpression + " " + (SortingExpression.Contains("ASC") ? "DESC" : "ASC");
+    //        m_DataView.Sort = SortingExpression;
+
+    //        grdTaskSummary.DataSource = m_DataView;
+    //        grdTaskSummary.DataBind();
+    //    }
+    //}
+    //protected void grdTaskSummary_RowDataBound(object sender, GridViewRowEventArgs e)
+    //{
+    //    string imgAsc = @" <img src='AscArrow.jpg' border='0' title='Ascending' />";
+    //    string imgDes = @" <img src='DscArrow.jpg' border='0' title='Descendng' />";
+    //    if (e.Row.RowType == DataControlRowType.Header)
+    //    {
+    //        foreach (TableCell cell in e.Row.Cells)
+    //        {
+    //            LinkButton lnkbtn = (LinkButton)cell.Controls[0];
+    //            if (lnkbtn.Text == grdTaskSummary.SortExpression)
+    //            {
+    //                if (grdTaskSummary.SortDirection == SortDirection.Ascending)
+    //                {
+    //                    lnkbtn.Text += imgAsc;
+    //                }
+    //                else
+    //                    lnkbtn.Text += imgDes;
+    //            }
+    //        }
+    //    }
+    }
+
+    public SortDirection dir
+    {
+
+        get
+        {
+
+            if (ViewState["dirState"] == null)
+            {
+
+                ViewState["dirState"] = SortDirection.Ascending;
+
+            }
+
+            return (SortDirection)ViewState["dirState"];
+
+        }
+
+        set
+        {
+
+            ViewState["dirState"] = value;
+
+        }
+
+
+
+    }
+
+}
